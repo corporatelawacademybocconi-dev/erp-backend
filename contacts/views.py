@@ -17,6 +17,8 @@ class ContactPagination(PageNumberPagination):
     def get_paginated_response(self, data):
         return Response({
             'count': self.page.paginator.count,
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
             'total_pages': self.page.paginator.num_pages,
             'current_page': self.page.number,
             'results': data,
@@ -29,7 +31,7 @@ class ContactFilter(django_filters.FilterSet):
 
     class Meta:
         model = Contact
-        fields = ['company', 'role', 'relationship_score']
+        fields = ['relationship_score']
 
 
 class CompanyViewSet(viewsets.ModelViewSet):
