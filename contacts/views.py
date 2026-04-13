@@ -1,9 +1,35 @@
 # Create your views here.
+import django_filters
 from rest_framework import viewsets, filters
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Company, Tag, Contact, Interaction
 from .serializers import CompanySerializer, TagSerializer, ContactSerializer, InteractionSerializer
+
+
+class ContactPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+    def get_paginated_response(self, data):
+        return Response({
+            'count': self.page.paginator.count,
+            'total_pages': self.page.paginator.num_pages,
+            'current_page': self.page.number,
+            'results': data,
+        })
+
+
+class ContactFilter(django_filters.FilterSet):
+    role = django_filters.CharFilter(field_name='role', lookup_expr='icontains')
+    company = django_filters.NumberFilter(field_name='company__id')
+
+    class Meta:
+        model = Contact
+        fields = ['company', 'role', 'relationship_score']
 
 
 class CompanyViewSet(viewsets.ModelViewSet):
@@ -34,8 +60,9 @@ class TagViewSet(viewsets.ModelViewSet):
 class ContactViewSet(viewsets.ModelViewSet):
     serializer_class = ContactSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = ContactPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['company', 'relationship_score']
+    filterset_class = ContactFilter
     search_fields = ['first_name', 'last_name', 'email', 'role']
     ordering_fields = ['last_name', 'relationship_score', 'last_contacted']
 
