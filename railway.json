@@ -4,7 +4,8 @@
       "builder": "NIXPACKS"
     },
     "deploy": {
-      "startCommand": "python manage.py migrate && python create_superuser.py && gunicorn config.wsgi --log-file -",
+      "preDeployCommand": "python manage.py migrate && python create_superuser.py",
+      "startCommand": "gunicorn config.wsgi --log-file -",
       "healthcheckPath": "/admin/",
       "restartPolicyType": "ON_FAILURE"
     }
